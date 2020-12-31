@@ -6,11 +6,10 @@
 
 import Population
 import pickle
-import config as cg
-import data_manager as dm
 
 
-class Genetic_algotihm:
+
+class Genetic_programming:
     population: Population.Population_base
 
     def __init__(self, Population, condition=None, iterations=100, iter_method=False):
@@ -93,16 +92,17 @@ def main(args):
         # print("loading file: population_{:d}.pickle".format(args.resume))
         population = load_element(args.output_dir, 'population_{:d}.pickle'.format(args.resume))
     else:
-        manager_BCCD = dm.Filter_processor()
-        population = Population.population_filters(manager_BCCD, cg.filters_per_layers, n_population=int(args.population),
-                                                   Mutation=float(args.mutation))
+        pass
+        # manager_BCCD = dm.Filter_processor()
+        # population = Population.population_filters(manager_BCCD, cg.filters_per_layers, n_population=int(args.population),
+        #                                            Mutation=float(args.mutation))
 
     if int(args.samples_train) > -1:
         population.set_training_dataset_size(int(args.samples_train))
     if args.resume > 0:
-        genetic_algorithm = Genetic_algotihm(population, iterations=args.epochs-args.resume, iter_method=True)
+        genetic_algorithm = Genetic_programming(population, iterations=args.epochs - args.resume, iter_method=True)
     else:
-        genetic_algorithm = Genetic_algotihm(population, iterations=args.epochs, iter_method=True)
+        genetic_algorithm = Genetic_programming(population, iterations=args.epochs, iter_method=True)
 
     best_samples, average, best = genetic_algorithm.run()
     save_element(args.output_dir, 'population_{:d}.pickle'.format(int(args.epochs)), genetic_algorithm.population)
