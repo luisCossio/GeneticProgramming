@@ -83,7 +83,9 @@ class population_des_chiffres(Population_base):
     def new_generation(self):
         new_population = []
         if self.elitism:
-            new_population += self.best_individual.copy()
+            # print("elitism")
+            print("best result thus far: ",self.best_individual.report())
+            new_population += [self.best_individual.copy()]
             for i in range(1,self.n_population):
                 new_population.append(self.breed_new_individial())
             self.population = new_population
@@ -127,7 +129,7 @@ class population_des_chiffres(Population_base):
         return Individual
 
     def calculate_best_score(self):
-        score = -1000
+        score = -10000
         for i in range(self.n_population):
             self.population[i].fitness()
             if score < self.population[i].get_fitness():

@@ -9,14 +9,13 @@ class test_des_chiffres_nodes(TestCase):
         # self.tree = ind.des_chiffres_root_node(indexes,37,input_index=2)
         pass
 
-    def get_basic_tree(self):
+    def get_basic_tree(self, input_index=2):
         inputs = [600, 200, 700, 300, 100, 900, 500, 400]
-        return ind.des_chiffres_root_node(inputs, 3700, input_index=2)
+        return ind.des_chiffres_root_node(inputs, 3700, input_index=input_index)
 
     def get_small_tree(self):
         inputs = [6, 2]
         return ind.des_chiffres_root_node(inputs, 8, input_index=0)
-
 
     def test_get_value(self):
         """
@@ -101,8 +100,6 @@ class test_des_chiffres_nodes(TestCase):
         input_index1 = tree2.root_node.node1.input_index
         input_index2 = tree2.root_node.node2.input_index
 
-
-
         base = tree1.copy()
         sub_tree_donor = tree2.root_node.get_sub_tree(node_tree2)
         indexes_inputs_donor = sub_tree_donor.get_indexes_in_tree([])
@@ -130,7 +127,6 @@ class test_des_chiffres_nodes(TestCase):
         self.assertEqual(input_index1, base.root_node.node2.node1.input_index)
         self.assertEqual(input_index2, base.root_node.node2.node2.input_index)
 
-
     def test_cross_over2(self):
         tree1 = self.get_basic_tree()
         tree2 = self.get_basic_tree()
@@ -141,8 +137,61 @@ class test_des_chiffres_nodes(TestCase):
         input_in_tree = new_tree.root_node.get_indexes_in_tree([])
         back_up_indexes = [i for i in range(len(new_tree.back_up_inputs))]
         for input_index in back_up_indexes:
-            self.assertTrue((input_index in remaining) != (input_index in input_in_tree))  # logical xor, input can be in only one of this lists
+            self.assertTrue((input_index in remaining) != (
+                        input_index in input_in_tree))  # logical xor, input can be in only one of this lists
 
+    def test_cross_over3(self):
+        tree1 = self.get_basic_tree()
+        tree1.mutation()
+        tree2 = tree1.copy()
+        node_tree1 = 3
+        node_tree2 = 2
+
+        input_index1 = tree2.root_node.node1.input_index  # values for asseting
+        input_index2 = tree2.root_node.node2.input_index
+
+        base = tree1.copy()
+        sub_tree_donor = tree2.root_node.get_sub_tree(node_tree2)
+        indexes_inputs_donor = sub_tree_donor.get_indexes_in_tree([])
+
+        self.assertEqual(2, len(indexes_inputs_donor))
+
+        sub_tree_base = tree1.root_node.get_sub_tree(node_tree1)
+        indexes_inputs_sub_base = sub_tree_base.get_indexes_in_tree([])
+
+        if base.root_node.is_node(node_tree1):
+            base.root_node = sub_tree_donor
+        else:
+            base.root_node.replace_branch(node_tree1, sub_tree_donor, indexes_inputs_donor)
+
+        remaining_indexes_input = base.remaining_indexes_inputs
+        remaining_inputs = base.remaining_inputs
+
+        for input_index in indexes_inputs_sub_base:
+            remaining_indexes_input += [input_index]
+            remaining_inputs += [tree1.back_up_inputs[input_index]]
+
+        for input_index in indexes_inputs_donor:
+            for i, index_remaining in enumerate(remaining_indexes_input):
+                if index_remaining == input_index:
+                    remaining_indexes_input.pop(i)
+                    remaining_inputs.pop(i)
+                    break
+
+        tree1.remaining_indexes_inputs = remaining_indexes_input
+        tree1.remaining_inputs = remaining_inputs
+        base.root_node.fix_null_nodes()
+
+        remaining = base.remaining_indexes_inputs
+        input_in_tree = base.root_node.get_indexes_in_tree([])
+        back_up_indexes = [i for i in range(len(base.back_up_inputs))]
+        for input_index in back_up_indexes:
+            self.assertTrue((input_index in remaining) != (
+                        input_index in input_in_tree))  # logical xor, input can be in only one of this lists
+
+        self.assertEqual(input_index1, base.root_node.node2.node1.input_index)
+        self.assertEqual(input_index2, base.root_node.node2.node2.input_index)
+        self.assertEqual(4, base.root_node.get_value())  # makes sure that the number of nodes remains consistent
 
     def test_copy(self):
         """
@@ -208,7 +257,6 @@ class test_des_chiffres_nodes(TestCase):
         result = tree.root_node.calculate_result()
         self.assertEqual(num1 / num2, result)
 
-
     def test_mutate_by_swapping_inputs(self):
         tree = self.get_small_tree()
         tree.mutation()
@@ -220,11 +268,23 @@ class test_des_chiffres_nodes(TestCase):
         inputs_tree = tree.back_up_inputs
         index_swap1 = 0
         index_swap2 = 1
-        nodes_founded = tree.root_node.mutation_swap_method([index_swap1, index_swap2],inputs_tree)
-        self.assertEqual(2,nodes_founded)
+        nodes_founded = tree.root_node.mutation_swap_method([index_swap1, index_swap2], inputs_tree)
+        self.assertEqual(2, nodes_founded)
 
-        self.assertEqual(index_node1,tree.root_node.node2.input_index)
-        self.assertEqual(input_node1,tree.root_node.node2.input)
+        self.assertEqual(index_node1, tree.root_node.node2.input_index)
+        self.assertEqual(input_node1, tree.root_node.node2.input)
 
         self.assertEqual(index_node2, tree.root_node.node1.input_index)
         self.assertEqual(input_node2, tree.root_node.node1.input)
+
+
+    def test_get_sub_tree1(self):
+        tree = self.get_basic_tree()
+        input_index = tree.root_node.input_index
+        sub_tree = tree.root_node.get_sub_tree(1)
+        self.assertEqual(1,sub_tree.type_node)
+        self.assertEqual(1,tree.root_node.type_node)
+        self.assertEqual(input_index,sub_tree.input_index)
+        indexes_in_tree = sub_tree.get_indexes_in_tree([])
+        self.assertEqual(input_index,indexes_in_tree[0])
+

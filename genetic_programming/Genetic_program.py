@@ -4,6 +4,7 @@
 
 
 import Population as pl
+import matplotlib.pyplot as plt
 
 
 
@@ -88,6 +89,13 @@ def main(args):
     best_fitness_per_epoch, average_fitness_per_epoch, best = genetic_algorithm.run()
     print("best: ", best.get_fitness())
     print("averge result: ", average_fitness_per_epoch[-1])
+    time = [i for i in range(len(best_fitness_per_epoch))]
+    plt.plot(time, best_fitness_per_epoch,label=  'best')
+    plt.plot(time, average_fitness_per_epoch,label=  'average')
+    plt.legend()
+    plt.xlabel('Epochs')
+    plt.xlabel('Fitness [Error]')
+    plt.show()
 
 
 #
