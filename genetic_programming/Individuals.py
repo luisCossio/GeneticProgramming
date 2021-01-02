@@ -15,6 +15,7 @@ class des_chiffres_node:
         self.mutation_method = None
         self.result_calculation = None
         self.operation = None
+        self.get_sub_tree = None
 
         if type_node == 0:
             self.input_index = None
@@ -32,6 +33,7 @@ class des_chiffres_node:
             self.mutation_swap_method = self.mutate_swap_input_node
             self.node1 = None
             self.node2 = None
+            self.get_sub_tree = self.get_sub_tree_input_node
 
         else:
             assert ( isinstance(Node2,des_chiffres_node) and isinstance(Node1,des_chiffres_node)),\
@@ -45,6 +47,7 @@ class des_chiffres_node:
             self.result_calculation = self.get_result_operation_node
             self.node1 = Node1
             self.node2 = Node2
+            self.get_sub_tree = self.get_sub_tree_operation_node
 
     def get_value(self):
         return self.value
@@ -54,7 +57,7 @@ class des_chiffres_node:
 
     def mutate_remaining_inputs(self, node_index, input_index, input_value):
         """
-        Method of mutation when there is still some inputs not yet included on the three
+        Method of mutation when there is still some indexes not yet included on the three
 
         Args:
             node_index (int): number of node where for a give tree
@@ -76,6 +79,7 @@ class des_chiffres_node:
             self.input = None
             self.operation = self.get_random_operation()
             self.result_calculation = self.get_result_operation_node
+            self.get_sub_tree = self.get_sub_tree_operation_node
             self.mutation_method = self.mutate_operation_node
             self.mutation_swap_method = self.mutate_swap_operation_node
             return 2
@@ -100,9 +104,9 @@ class des_chiffres_node:
             self.value += result
             return result
 
-    def cross_over(self, new_individual):
-            base = self.copy()
-            return base
+    # def cross_over(self, new_individual):
+    #     base = self.copy()
+    #     return base
 
     def copy(self):
         if self.type_node == 1:
@@ -132,10 +136,13 @@ class des_chiffres_node:
             print("Error, invalid random number in operation generator: ",random_value)
 
     def get_result_operation_node(self):
-        if self.node1.type_node == 0:
+        if self.type_node==1:
+            return self.input
+        elif self.node1.type_node == 0:
             return self.operation(self.operation.get_null_value(),self.node2.calculate_result())
         elif self.node2.type_node == 0:
             return self.operation(self.node1.calculate_result(),self.operation.get_null_value())
+
         return self.operation(self.node1.calculate_result(),self.node2.calculate_result())
 
     def get_result_input_node(self):
@@ -143,7 +150,7 @@ class des_chiffres_node:
 
     # def mutate_by_swapping_inputs(self, index_to_find, indexes_swap, indexes_swap):
     #     """
-    #     Method of mutation if there are no longer inputs to assign to this tree
+    #     Method of mutation if there are no longer indexes to assign to this tree
     #
     #     Returns: (bool) True if the node was found
     #     """
@@ -174,73 +181,292 @@ class des_chiffres_node:
         found_node += self.node2.mutation_swap_method(indexes_swap, inputs_swap)
         return found_node
 
+    # def get_sub_tree(self, node_index):
+    #     """
+    #
+    #     Args:
+    #         node_index (int): index of node to return
+    #
+    #     Returns:
+    #         des_chiffres_node:  sub tree of data
+    #     """
+    #     if self.type_node == 2:
+    #         if self.node1.get_value() >= node_index:
+    #             tree = self.node1.get_sub_tree(node_index)
+    #             # if result > 0:
+    #             return tree
+    #
+    #         elif self.node1.get_value() + 1 == node_index:
+    #             tree = self.copy()
+    #             return tree
+    #             # return self.copy()
+    #
+    #         else:
+    #             tree = self.node2.get_sub_tree(node_index - (self.node1.get_value() + 1))
+    #             return tree
 
-class des_chiffres_root_node(des_chiffres_node):
+    def get_sub_tree_operation_node(self,node_index):
+        if self.node1.get_value() >= node_index:
+            tree = self.node1.get_sub_tree(node_index)
+            # if result > 0:
+            return tree
+
+        elif self.node1.get_value() + 1 == node_index:
+            tree = self.copy()
+            return tree
+            # return self.copy()
+        else:
+            tree = self.node2.get_sub_tree(node_index - (self.node1.get_value() + 1))
+            return tree
+
+    def get_sub_tree_input_node(self, node_index):
+        return self.copy()
+
+
+
+    def get_indexes_in_tree(self, indexes):
+        if self.type_node == 0:
+            return indexes
+
+        elif self.type_node == 2:
+            new_indexes = self.node1.get_indexes_in_tree(indexes)
+            new_indexes = self.node2.get_indexes_in_tree(new_indexes)
+            return new_indexes
+
+        else:
+            indexes += [self.input_index]
+            return indexes
+
+    def nullify_inputs(self, inputs_to_nullify):
+        """
+        Given a list of inputs indexes, removes any of this in this node or branches of this node.
+        Args:
+            inputs_to_nullify (List(int)):
+
+        Returns:
+
+        """
+        if self.type_node == 0:
+            return inputs_to_nullify
+
+        elif self.type_node == 1:
+            if self.input_index in inputs_to_nullify:
+                for i in range(len(inputs_to_nullify)):
+                    if inputs_to_nullify[i] == self.input_index:
+                        inputs_to_nullify.pop(i)
+                        break
+                self.nullify_this_node()
+            return inputs_to_nullify
+
+        else:
+            inputs_to_nullify = self.node1.nullify_inputs(inputs_to_nullify)
+            self.value = self.node1.get_value()+self.node2.get_value()+1
+            if len(inputs_to_nullify)==0:
+                return []
+            inputs_to_nullify = self.node2.nullify_inputs(inputs_to_nullify)
+            self.value = self.node1.get_value() + self.node2.get_value() + 1
+            return inputs_to_nullify
+
+    def nullify_this_node(self):
+        self.mutation_swap_method = None
+        self.mutation_method = None
+        self.result_calculation = None
+        self.get_sub_tree = None
+        self.operation = None
+        self.type_node = 0
+        self.input_index = None
+        self.input = None
+        self.value = 0
+        self.node1 = None
+        self.node2 = None
+
+    def is_node(self, node_number):
+        if self.type_node == 1:
+            if 1 == node_number:
+                return True
+            return False
+        elif self.type_node == 2:
+            if self.node1.get_value() >= node_number:
+                return False
+            elif self.node1.get_value() + 1 == node_number:
+                return True
+            return False
+        elif self.type_node == 0:
+            return False
+        else:
+            print("error invalid condition achieved. Null node ask if is node")
+    def replace_branch(self, node_to_be_replace, sub_tree, indexex_to_remove):
+
+        if self.type_node==0 or self.type_node==1:
+            return
+
+        elif self.node1.is_node(node_to_be_replace):
+            self.node1 = sub_tree
+            self.value = self.node1.get_value()+self.node2.get_value()+1
+            _ = self.node2.nullify_inputs(indexex_to_remove)
+            return
+        elif self.node2.is_node(node_to_be_replace-(self.node1.get_value() + 1)):
+            self.node2 = sub_tree
+            self.value = self.node2.get_value() + self.node1.get_value() + 1
+            _ = self.node1.nullify_inputs(indexex_to_remove)
+            return
+
+        elif self.node1.get_value() >= node_to_be_replace:
+            self.node1.replace_branch(node_to_be_replace,sub_tree,indexex_to_remove)
+            _ = self.node2.nullify_inputs(indexex_to_remove)
+        else:
+            self.node2.replace_branch(node_to_be_replace - (self.node1.get_value() + 1), sub_tree, indexex_to_remove)
+            _ = self.node1.nullify_inputs(indexex_to_remove)
+        self.value = self.node1.get_value()+self.node2.get_value()+1
+
+    def fix_null_nodes(self):
+        """
+        Method used after cross-over operation to fix certain invalid configurations
+        Returns:
+
+        """
+        if self.type_node==2:
+            self.node1.fix_null_nodes()
+            self.node2.fix_null_nodes()
+            if self.node1.type_node == 0 and self.node2.type_node == 0:
+                self.nullify_this_node()
+
+    def report(self):
+        if self.type_node == 1:
+            return str(self.input)
+        elif self.type_node == 2:
+            return "{:s} {:s} {:s} ".format(self.node1.report(),self.operation.report(),self.node2.report())
+        else:
+            return ""
+
+
+class des_chiffres_root_node():
 
 
     __fitness: int
     remaining_inputs: List[int]
 
-    def __init__(self,inputs, desired_value, input_index=0,type_node = 1,**kwargs):
+    def __init__(self, inputs, desired_value, input_index=0,type_node = 1,**kwargs):
         """
 
         Args:
             input_index (int):
             inputs (List[ints]):
         """
-        super().__init__(input_index=input_index,input_value=inputs[input_index], type_node=type_node, **kwargs)
+        if input_index is None:
+            assert type_node==2, "Invalid combination of type node = {:d} and input index {}".format(type_node,
+                                                                                                     input_index)
+            self.root_node = des_chiffres_node(input_index=None, input_value=None,
+                                               type_node=type_node, **kwargs)
+        else:
+            self.root_node = des_chiffres_node(input_index=input_index,input_value=inputs[input_index],
+                                           type_node=type_node,**kwargs)
+        self.__number_inputs = len(inputs)
         self.remaining_inputs = inputs
         self.back_up_inputs = inputs.copy()
-        self.indexes_input = [i for i in range(len(inputs))]
+        self.remaining_indexes_inputs = [i for i in range(len(inputs))]
         self.remaining_inputs.pop(input_index)
-        self.indexes_input.pop(input_index)
-
+        self.remaining_indexes_inputs.pop(input_index)
         self.__fitness = -10000
-        self.__number_inputs = len(inputs)
         self.desired_output = desired_value
 
     def copy(self):
-        if self.type_node == 1:
-            return des_chiffres_root_node(self.back_up_inputs.copy(),self.desired_output,self.input_index)
-        # elif self.type_node == 0:
-        #     return des_chiffres_root_node(None, None, type_node=0)
-        elif self.type_node == 2:
-            node_son1 = self.node1.copy()
-            node_son2 = self.node2.copy()
-            new_node = des_chiffres_root_node(self.back_up_inputs.copy(),self.desired_output,self.input_index,
+        """
+
+        Returns:
+            des_chiffres_root_node:
+        """
+        if self.root_node.type_node == 1:
+            return des_chiffres_root_node(self.back_up_inputs.copy(),self.desired_output,self.root_node.input_index)
+        elif self.root_node.type_node == 2:
+            node_son1 = self.root_node.node1.copy()
+            node_son2 = self.root_node.node2.copy()
+            new_node = des_chiffres_root_node(self.back_up_inputs.copy(),self.desired_output,0,
                                               type_node=2,Node1=node_son1,Node2=node_son2)
+            new_node.remaining_inputs = self.remaining_inputs.copy()
+            # new_node.set_fitness(self.__fitness)
+            new_node.remaining_indexes_inputs = self.remaining_indexes_inputs.copy()
+
             return new_node
         else:
            print("Error. Invalid type of node", self.type_node)
 
     def mutation(self):
-        number_nodes = self.get_value()
+        number_nodes = self.root_node.get_value()
         if len(self.remaining_inputs) > 0:
             random_node = random.randint(1,number_nodes)
             random_index = random.randint(0,len(self.remaining_inputs)-1)
-            result = self.mutate_remaining_inputs(random_node,self.indexes_input[random_index],self.remaining_inputs[random_index])
+            result = self.root_node.mutate_remaining_inputs(random_node, self.remaining_indexes_inputs[random_index], self.remaining_inputs[random_index])
             # self.sum_value()
             if result > 0:
                 self.remaining_inputs.pop(random_index)
-                self.indexes_input.pop(random_index)
+                self.remaining_indexes_inputs.pop(random_index)
 
         else:
-            random_index1 = random.randint(0, self.__number_inputs)
-            random_index2 = random.randint(0, self.__number_inputs)
+            random_index1 = random.randint(0, self.__number_inputs-1)
+            random_index2 = random.randint(0, self.__number_inputs-1)
 
-            _ = self.mutation_swap_method([random_index1, random_index2],
+            _ = self.root_node.mutation_swap_method([random_index1, random_index2],
                                                [self.back_up_inputs[random_index1],
                                                 self.back_up_inputs[random_index2]])
             if _ != 2:
                 print("Error. Impossible condition achieved")
 
-            # self.sum_value()
-        # pass
+    def cross_over(self,tree_node):
+        """
+
+        Args:
+            tree_node (des_chiffres_root_node):
+
+        Returns:
+            (des_chiffres_root_node):
+        """
+        random_node_to_be_replace = random.randint(1,self.root_node.get_value())
+        random_node_for_replacement = random.randint(1,tree_node.root_node.get_value())
+        base = self.copy()
+        sub_tree_donor = tree_node.root_node.get_sub_tree(random_node_for_replacement)
+        indexes_inputs_donor = sub_tree_donor.get_indexes_in_tree([])
+        sub_tree_base = self.root_node.get_sub_tree(random_node_to_be_replace)
+        indexes_inputs_sub_base = sub_tree_base.get_indexes_in_tree([])
+
+        if base.root_node.is_node(random_node_to_be_replace):
+            base.root_node = sub_tree_donor
+        else:
+            base.root_node.replace_branch(random_node_to_be_replace, sub_tree_donor,indexes_inputs_donor)
+        
+        remaining_indexes_input = base.remaining_indexes_inputs
+        remaining_inputs = base.remaining_inputs
+
+        for input_index in indexes_inputs_sub_base:
+            remaining_indexes_input += [input_index]
+            remaining_inputs += [self.back_up_inputs[input_index]]
+
+        for input_index in indexes_inputs_donor:
+            for i,index_remaining in enumerate(remaining_indexes_input):
+                if index_remaining==input_index:
+                    remaining_indexes_input.pop(i)
+                    remaining_inputs.pop(i)
+                    break
+
+        self.remaining_indexes_inputs = remaining_indexes_input
+        self.remaining_inputs = remaining_inputs
+        base.root_node.fix_null_nodes()
+        return base
+
+
 
     def fitness(self):
-        result = self.get_result_operation_node()
+        result = self.root_node.get_result_operation_node()
+        self.__fitness = -abs(result-self.desired_output)
 
+    def set_fitness(self, fitness):
+        self.__fitness = fitness
 
+    def get_fitness(self):
+        return self.__fitness
+
+    def report(self):
+        return self.root_node.report()
 
 class operation:
     def __init__(self):
@@ -249,17 +475,27 @@ class operation:
     def get_null_value(self):
         return 0
 
+    def report(self):
+        return "o"
+
 class sum_op(operation):
     def __call__(self, *args):
         return args[0] + args[1]
+    def report(self):
+        return "+"
 
 class rest_op(operation):
     def __call__(self, *args):
         return args[0]-args[1]
+    def report(self):
+        return "-"
 
 class mult_op(operation):
     def __call__(self, *args):
         return args[0]*args[1]
+
+    def report(self):
+        return "*"
 
     def get_null_value(self):
         return 1
@@ -270,3 +506,6 @@ class div_op(operation):
 
     def get_null_value(self):
         return 1
+
+    def report(self):
+        return "/"

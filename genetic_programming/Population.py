@@ -2,12 +2,12 @@ import random
 import string
 from typing import List, Any
 
-import numpy as np
+# import numpy as np
 import Individuals as In
 
 
 class Population_base:
-    population: List[In.individual]
+    population: List[Any]
 
     def __init__(self):
         self.best_score = 0
@@ -41,27 +41,31 @@ class Population_base:
 
 
 class population_des_chiffres(Population_base):
+    output: int
     population: List[In.des_chiffres_node]
 
-    def __init__(self, inputs, n_population=100, n_random_cross_over=5, Mutation = 0.2):
+    def __init__(self, inputs, output, n_population=100, n_toornament=5, Mutation = 0.2, elitism = True):
         """
         Class to manage the population of datasets.
 
         Args:
             inputs (List):
             n_population:
-            n_random_cross_over:
+            n_toornament:
             Mutation:
         """
 
         super().__init__()
         self.n_gen = len(inputs)
         self.__inputs = inputs
-        self.n_random_tournament = n_random_cross_over
+        self.n_random_tournament = n_toornament
         self.n_population = n_population
+        self.output = output
         self.population = self.generate_random_population(n_population)
         self.best_des_chiffres = None
         self.mutation_rate = Mutation
+        self.elitism = elitism
+
         # self.best_score = 0
         # print(self.population[0])
         # print(self.genes)
@@ -69,17 +73,24 @@ class population_des_chiffres(Population_base):
     def generate_random_population(self, N_population):
         population = []
         for i in range(N_population):
-            population.append(self.generate_random_des_chiffres(self.n_gen))
+            population.append(self.generate_random_des_chiffres())
         return population
 
-    def generate_random_des_chiffres(self, n_gen):
-        return In.des_chiffres_node(self.__inputs.copy())
+    def generate_random_des_chiffres(self):
+        index_random = random.randint(0,len(self.__inputs)-1)
+        return In.des_chiffres_root_node(self.__inputs.copy(),self.output ,index_random)
 
     def new_generation(self):
         new_population = []
-        for i in range(self.n_population):
-            new_population.append(self.breed_new_individial())
-        self.population = new_population
+        if self.elitism:
+            new_population += self.best_individual.copy()
+            for i in range(1,self.n_population):
+                new_population.append(self.breed_new_individial())
+            self.population = new_population
+        else:
+            for i in range(self.n_population):
+                new_population.append(self.breed_new_individial())
+            self.population = new_population
 
     def pick_random_sample(self):
         sub_sample = []
@@ -91,7 +102,7 @@ class population_des_chiffres(Population_base):
         individual1 = self.tournament()
         individual2 = self.tournament()
         new_individual = self.cross_over(individual1, individual2)
-        if np.random.random()<self.mutation_rate:
+        if random.uniform(0,1)<self.mutation_rate:
             return self.mutation(new_individual)
         return new_individual
 
@@ -116,12 +127,12 @@ class population_des_chiffres(Population_base):
         return Individual
 
     def calculate_best_score(self):
-        score = 0
+        score = -1000
         for i in range(self.n_population):
             self.population[i].fitness()
             if score < self.population[i].get_fitness():
                 score = self.population[i].get_fitness()
-                self.best_des_chiffres = self.population[i].get_result()
+                self.best_des_chiffres = self.population[i].report()
                 self.set_best_individual(self.population[i])
         self.best_score = score
         return self.best_score
