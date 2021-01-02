@@ -6,8 +6,6 @@ def main(args):
     population_size = args.population
     inputs = [float(i) for i in args.inputs]
     output = [float(i) for i in args.output]
-    print("input: ",inputs)
-    print("output: ",output)
     assert (len(inputs),len(output)),"Inconsisten sizes for input and output"
     mutation = args.mutation
     epochs = args.epochs
