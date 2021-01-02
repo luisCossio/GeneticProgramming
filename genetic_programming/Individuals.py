@@ -339,8 +339,8 @@ class des_chiffres_node:
 
 
 class function_estimation_node(des_chiffres_node):
-    def __init__(self, input_index, input_value, type_node=1, operation_node=None, Node1=None, Node2=None):
-        self.number_inputs = len(input_value)
+    def __init__(self, input_index, input_value, type_node=1, n_inputs = 0, operation_node=None, Node1=None, Node2=None):
+        self.number_inputs = n_inputs
         self.type_node = type_node  # 0 for null node, 1 for input node, 2 for operation node
 
         self.mutation_swap_method = None
@@ -357,6 +357,7 @@ class function_estimation_node(des_chiffres_node):
             self.node2 = None
 
         elif type_node == 1:
+
             self.input_index = input_index
             self.input = input_value
             self.value = 1
@@ -371,6 +372,7 @@ class function_estimation_node(des_chiffres_node):
 
             assert (isinstance(Node2, function_estimation_node) and isinstance(Node1, function_estimation_node)), \
                 ("Error. Invalid type of node {}".format(type(Node2)))
+
             self.input_index = None
             self.input = None
 
@@ -397,8 +399,8 @@ class function_estimation_node(des_chiffres_node):
 
     def mutate_input_node(self, node_index, input_index, input_value):
         self.type_node = 2
-        self.node1 = function_estimation_node(self.input_index,self.input)
-        self.node2 = function_estimation_node(input_index,input_value)
+        self.node1 = function_estimation_node(self.input_index, self.input, n_inputs=self.number_inputs)
+        self.node2 = function_estimation_node(input_index, input_value, n_inputs=self.number_inputs)
         self.value = 3
         self.input_index = None
         self.input = None
@@ -423,13 +425,13 @@ class function_estimation_node(des_chiffres_node):
 
     def copy(self):
         if self.type_node == 1:
-            return function_estimation_node(self.input_index,self.input.copy())
+            return function_estimation_node(self.input_index,self.input.copy(), n_inputs=self.number_inputs)
         elif self.type_node == 0:
             return function_estimation_node(None, None, type_node=0)
         else:
             node_son1 = self.node1.copy()
             node_son2 = self.node2.copy()
-            new_node = function_estimation_node(None, None, type_node=2, operation_node = self.operation.copy(),
+            new_node = function_estimation_node(None, None, type_node=2, n_inputs=self.number_inputs, operation_node = self.operation.copy(),
                                          Node1=node_son1,Node2=node_son2)
             return new_node
 
@@ -445,12 +447,21 @@ class function_estimation_node(des_chiffres_node):
 
     def report(self):
         if self.type_node == 1:
-            return 'x'
+            if self.is_constant():
+                return str(self.input[0])
+            else:
+                return 'x'
         elif self.type_node == 2:
             return "({:s} {:s} {:s}) ".format(self.node1.report(),self.operation.report(),self.node2.report())
         else:
             return ""
 
+    def is_constant(self):
+        value = self.input[0]
+        for i in self.input:
+            if value != i:
+                return False
+        return True
 
 
 class des_chiffres_root_node:
@@ -611,14 +622,16 @@ class function_estimation_root_node:
             input_index (int):
             inputs (List[ints]):
         """
+        data_numbers = len(inputs[0])
         if input_index is None:
             assert type_node==2, "Invalid combination of type node = {:d} and input index {}".format(type_node,
                                                                                                      input_index)
+
             self.root_node = function_estimation_node(input_index=None, input_value=None,
-                                               type_node=type_node, **kwargs)
+                                               type_node=type_node,  n_inputs=data_numbers, **kwargs)
         else:
             self.root_node = function_estimation_node(input_index=input_index,input_value=inputs[input_index],
-                                           type_node=type_node,**kwargs)
+                                           type_node=type_node, n_inputs=data_numbers,**kwargs)
 
         self.__number_inputs = len(inputs)
         self.remaining_inputs = inputs
@@ -723,7 +736,9 @@ class function_estimation_root_node:
 
     def fitness(self):
         results = self.root_node.get_result_operation_node()
-        results = [-abs(results[i]-self.desired_output[i]) for i in range(len(self.desired_output))]
+        if len(results)==0:
+            print("result: ",results)
+        results = [-(abs((results[i]-self.desired_output[i])/self.desired_output[i])) for i in range(len(self.desired_output))]
         self.__fitness = sum(results)
 
     def set_fitness(self, fitness):
@@ -804,23 +819,24 @@ class sum_op_function_estimation(sum_op):
     def copy(self):
         return sum_op_function_estimation()
 
-
 class rest_op_function_estimation(rest_op):
     def __call__(self, *args):
         return [args[0][i]-args[1][i] for i in range(len(args[0]))]
     def copy(self):
         return rest_op_function_estimation()
+
 class mult_op_function_estimation(mult_op):
     def __call__(self, *args):
         return [args[0][i]*args[1][i] for i in range(len(args[0]))]
+
     def copy(self):
         return mult_op_function_estimation()
 
-
 class div_op_function_estimation(div_op):
+
     def __call__(self, *args):
         division = []
-        for i in range(args[0]):
+        for i in range(len(args[0])):
             if args[1][i]==0:
                 division += [args[0][i]*10000]
             else:

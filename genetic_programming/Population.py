@@ -111,7 +111,7 @@ class population_des_chiffres(Population_base):
         best_fit = -1
         champion = -1
         for i in range(self.n_random_tournament):
-            samples[i].fitness()
+            # samples[i].fitness()
             if samples[i].get_fitness() > best_fit:
                 champion = i
                 best_fit = samples[i].get_fitness()
@@ -170,7 +170,7 @@ class population_function_estimation(Population_base):
         self.n_population = n_population
         self.output = output
         self.population = self.generate_random_population(n_population)
-        self.best_des_chiffres = None
+        self.best_function = None
         self.mutation_rate = Mutation
         self.elitism = elitism
 
@@ -221,7 +221,7 @@ class population_function_estimation(Population_base):
         best_fit = -1
         champion = -1
         for i in range(self.n_random_tournament):
-            samples[i].fitness()
+            # samples[i].fitness()
             if samples[i].get_fitness() > best_fit:
                 champion = i
                 best_fit = samples[i].get_fitness()
@@ -242,7 +242,7 @@ class population_function_estimation(Population_base):
             self.population[i].fitness()
             if score < self.population[i].get_fitness():
                 score = self.population[i].get_fitness()
-                self.best_des_chiffres = self.population[i].report()
+                self.best_function = self.population[i].report()
                 self.set_best_individual(self.population[i])
         self.best_score = score
         return self.best_score
@@ -250,7 +250,7 @@ class population_function_estimation(Population_base):
 
     def show_answer(self):
         print("Best score: ",self.best_score)
-        print("Winner expresion: ", self.best_des_chiffres)
+        print("Winner expresion: ", self.best_function)
 
     def get_inputs_representation(self, inputs):
         """

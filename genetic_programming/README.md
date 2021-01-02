@@ -25,11 +25,13 @@ To use the executable file ex_des_chiffres_et_des_lettres.py use in the folder a
 ```
 python ex_des_chiffres_et_des_lettres.py --population 50 --inputs 1 2 3 4 5 6 7 8 --output 23 --mutation 0.3 --epochs 50 --end-condition 0
 ```
-
+To use the executable file ex_function_estimation.py use in the folder a command like this one:
+```
+python ex_function_estimation.py --population 50 --inputs 1 2 3 4 5 6 7 8 --output 2 4 6 8 10 12 14 16 --mutation 0.3 --epochs 50 --end-condition 0
+```
 
 ## Description of Algorithm
-*   Training and fitting calculation is done by feeding the GA with samples of the image and expected ground truth:
-
+*   Implementation of genetic programming for calculation of 
   
 *   A sample is consider as an image of blood cells from the BCCD dataset and the corresponding mask where there is a bounding box marking where there is a white blood cell. 
   ![example](./resources images/image_and_mask.png)
