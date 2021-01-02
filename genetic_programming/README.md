@@ -1,54 +1,29 @@
 # Genetic Algortihm
 Autor: Luis Cossio
 
-Implementation of genetic a genetic algorithm (GA) to create filters capable of withe blood cells (WBC's) detection in images
+Implementation of genetic programming for the task of finding an aproximation of a function and to solve the problema of des chiffres et des lettres
+
 
 ## Description
-- Use of [BCCD](https://www.kaggle.com/surajiiitm/bccd-dataset) dataset. 
-- Use of the source code attached. 
-- The dataset and the source code of the Kaggle dataset needs to be downloaded separately from this repository following the structure given in the Structure section. 
-
-
-## Recognition
-Thanks to the publisher surajmishra for the submission of the dataset and source code to Kaggle. BCCD Dataset is under MIT licence.
-
+- 
 
 ## Structure
 The structure of the project is:
   ```
-  GA_WBC_detection
-  ├── BCCD_Dataset-master
-  │   └── BCCD 
-  │   │     └── Annotations
-  │   │     └── ImageSets
-  │   │     └── JPEGImages
-  │   └── dataset
-  │   │     └── mxnet
-  │   └── scripts
-  │   │     └── prepro.py
-  │   │     └── test.py
-  │   └── example.jpg
-  │   └── export.py
-  │   └── LICENSE
-  │   └── plot.py
-  │   └── README.md
-  │   └── test.csv
-  ├── resources images # Folder for results
-  │   └── image_and_mask.png  
-  ├── models # Folder for population and best individuals. 
-  │   └── population_6.pickle  
-  ├── config.py         # config file
-  ├── data_manager.py   # data manager files 
-  ├── LICENSE
+  genetic_programming
+  ├── Genetic_program.py
+  ├── Individuals.py
+  ├── test_individuals.py
+  ├── ex_des_chiffres_et_des_lettres.py
+  ├── ex_function_estimation.py
+  ├── requirements.txt
   └── README.md
   ```
-Most of the files inside de folder BCCD_Dataset-master are unnecessary to have for the purposes of this project, but since the images were necessary and heavy, it was decided to not upload the project with the entirety of the files needed. 
-Instead it was uploaded the files exclusive for this project.   
 
 ## Deployment
-To use the genetic algorithm file and start evolving a population use the next command:
+To use the executable file ex_des_chiffres_et_des_lettres.py use in the folder a command like this one:
 ```
-python Genetic_algorithm.py --population 25 --mutation 0.1 --epochs 50  --output-dir models --resume 0 --samples-train -1
+python ex_des_chiffres_et_des_lettres.py --population 50 --inputs 1 2 3 4 5 6 7 8 --output 23 --mutation 0.3 --epochs 50 --end-condition 0
 ```
 
 
