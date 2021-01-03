@@ -4,8 +4,8 @@ Autor: Luis Cossio
 
 ## Description
 
-Implementation of genetic programming for the task of finding an aproximation of a function 
-and to solve the problema of des chiffres et des lettres. Contains 2 excecutabls that show the 
+Implementation of genetic programming for the task of finding an approximation of a function 
+and to solve the problem of des chiffres et des lettres. Contains 2 executables that show the 
 result of the genetic programming in their respective task.
  
 
@@ -33,7 +33,7 @@ python ex_function_estimation.py --population 50 --inputs 1 2 3 4 5 6 7 8 --outp
 ```
 
 ## Description of Algorithm
-*   Implementation of genetic programming for calculation of expresions, for the problem known as  des chiffres et des lettres and function approximation. 
+*   Implementation of genetic programming for calculating expressions, for the problem known as  des chiffres et des lettres and function approximation. 
 The first one consist of a estimation of a expression of the form:
 
 12-5*4+7+2*9 = 17
