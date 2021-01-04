@@ -1,21 +1,36 @@
 import random
-import numpy as np
 from typing import List, Any
 
 
 class des_chiffres_node:
 
-    # node1: des_chiffres_node
-    # node2: des_chiffres_node
+    operation: operation
+    type_node: int
+    node1: des_chiffres_node
+    node2: des_chiffres_node
 
-    def __init__(self, input_index,input_value, type_node = 1, operation_node = None, Node1 = None, Node2 = None):
+    def __init__(self, input_index, input_value, type_node = 1, operation_given = None, Node1 = None, Node2 = None):
+        """
+        Class that defines a node in a tree, that defines a solution for a problem of des chiffres et des lettres.
+        Each node can be either input node, operation node or null node. Input nodes contains an input value.
+        Operation nodes contain an operation (+, -, * or /) and calculate the result of such operation between
+        the results given by its two nodes sons. Null node simple exist to mantain a binary structure and when a
+        node es nullify.
+
+        Args:
+            input_index (int): index of the input in the list of all inputs. Used as an index to distinguished inputs
+            input_value (float): input value
+            type_node (int): type of node
+            operation_given (operation): operation object
+            Node1 (des_chiffres_node): node son 1
+            Node2 (des_chiffres_node): node son 2
+        """
         self.type_node = type_node  # 0 for null node, 1 for input node, 2 for operation node
-
-        self.mutation_swap_method = None
-        self.mutation_method = None
-        self.result_calculation = None
+        self.mutation_swap_method = None  # function
+        self.mutation_method = None  # function
+        self.result_calculation = None  # function
         self.operation = None
-        self.get_sub_tree = None
+        self.get_sub_tree = None  # function
 
         if type_node == 0:
             self.input_index = None
@@ -44,7 +59,7 @@ class des_chiffres_node:
 
             self.mutation_method = self.mutate_operation_node
             self.mutation_swap_method = self.mutate_swap_operation_node
-            self.operation = operation_node
+            self.operation = operation_given
             self.result_calculation = self.get_result_operation_node
             self.node1 = Node1
             self.node2 = Node2
@@ -54,9 +69,22 @@ class des_chiffres_node:
 
 
     def get_value(self):
+        """
+        Method to get the number of inputs in this sub tree.
+        Returns: number of nodes in this sub tree. 1 if this is an input node
+            int
+        """
         return self.value
 
     def calculate_result(self):
+        """
+        Method to calculate the result of a given node. If its a input node result_calculation returns the input value,
+        if its an operation node, calculate the result of the operation given the 2 node sons. null node can't affect
+        the result.
+
+        Returns:
+
+        """
         return self.result_calculation()
 
     def mutate_remaining_inputs(self, node_index, input_index, input_value):
@@ -74,6 +102,17 @@ class des_chiffres_node:
 
 
     def mutate_input_node(self, node_index, input_index, input_value):
+        """
+        Method to mutate a node, into an operation node. This node can only be an input node.
+        Args:
+            node_index (int): index of node in the tree (not used in the part, because this is a end condition
+            in a recursive algorithm)
+            input_index (int):
+            input_value (float):
+
+        Returns: number of nodes added to the tree
+            int
+        """
         self.type_node = 2
         self.node1 = des_chiffres_node(self.input_index,self.input)
         self.node2 = des_chiffres_node(input_index,input_value)
@@ -89,6 +128,17 @@ class des_chiffres_node:
 
 
     def mutate_operation_node(self, node_index, input_index, input_value):
+        """
+        Method to manage a mutation command. The variable node_index is the identifier in the node to be mutated.
+         If this node is the one to be mutated the operation field is replaced by another random operation. Else, the
+         mutation command is recursively passed down to one of the node sons.
+        Args:
+            node_index (int): index of node in this tree
+            input_index (int):
+            input_value (float):
+        Returns: number of nodes added to the tree.
+            int
+        """
         if self.node1.get_value() >= node_index:
             result = self.node1.mutate_remaining_inputs(node_index, input_index, input_value)
             # if result > 0:
@@ -110,6 +160,12 @@ class des_chiffres_node:
     #     return base
 
     def copy(self):
+        """
+        Method to copy this node.
+
+        Returns:
+            des_chiffres_node
+        """
         if self.type_node == 1:
             return des_chiffres_node(self.input_index,self.input)
         elif self.type_node == 0:
@@ -117,12 +173,17 @@ class des_chiffres_node:
         else:
             node_son1 = self.node1.copy()
             node_son2 = self.node2.copy()
-            new_node = des_chiffres_node(self.input_index,self.input, type_node=2, operation_node = self.operation.copy(),
-                                         Node1=node_son1,Node2=node_son2)
+            new_node = des_chiffres_node(self.input_index, self.input, type_node=2, operation_given= self.operation.copy(),
+                                         Node1=node_son1, Node2=node_son2)
             return new_node
 
 
     def get_random_operation(self):
+        """
+        Method to get a random operation
+        Returns:
+            operation
+        """
         random_value = random.uniform(0, 1)
         if random_value<0.25:
             return sum_op()
@@ -135,6 +196,11 @@ class des_chiffres_node:
 
 
     def get_result_operation_node(self):
+        """
+        Method to calculate the result of this node. Used only for operation nodes.
+        Returns:
+            float
+        """
         if self.type_node==1:
             return self.input
         elif self.node1.type_node == 0:
@@ -144,6 +210,11 @@ class des_chiffres_node:
         return self.operation(self.node1.calculate_result(),self.node2.calculate_result())
 
     def get_result_input_node(self):
+        """
+        Method to calculate the result of this node. Used only for input nodes.
+        Returns:
+            float
+        """
         return self.input
 
     # def mutate_by_swapping_inputs(self, index_to_find, indexes_swap, indexes_swap):
@@ -155,6 +226,17 @@ class des_chiffres_node:
     #     return self.mutation_swap_method(index_to_find, indexes_swap, indexes_swap)
 
     def mutate_swap_input_node(self, indexes_swap, inputs_value_swap):
+        """
+        Method to mutate this input node by swapping a given index with another if this input index exist in the
+        indexes_swap.
+
+        Args:
+            indexes_swap (List(int)):
+            inputs_value_swap (List(float)):
+
+        Returns: number of inputs swapped.
+            int
+        """
         for i,input_index in enumerate(indexes_swap):
             if input_index == self.input_index:
                 self.input_index = indexes_swap[(i+1)%2]
@@ -163,6 +245,17 @@ class des_chiffres_node:
         return 0
 
     def mutate_swap_operation_node(self, indexes_swap, inputs_swap):
+        """
+        Method to mutate and input node by swapping a given index with another if this input index exist in the
+        indexes_swap. Looks for the node to be swapped and end when 2 inputs have been swapped.
+
+        Args:
+            indexes_swap (List(int)):
+            inputs_value_swap (List(float)):
+
+        Returns: number of inputs swapped.
+            int
+        """
         if self.node1.type_node == 0:
 
             nodes_found = self.node2.mutation_swap_method(indexes_swap, inputs_swap)
@@ -181,7 +274,8 @@ class des_chiffres_node:
 
     def get_sub_tree_operation_node(self,node_index):
         """
-        Method to extract a copy of a given sub tree inside this tree.
+        Method to extract a copy of a given sub tree inside this tree. The tree to be returned is of index 'node_index'
+        This method is used only for operation nodes.
         Args:
             node_index (int):
 
@@ -204,6 +298,15 @@ class des_chiffres_node:
             return tree
 
     def get_sub_tree_input_node(self, node_index):
+        """
+        Method to extract a copy of this tree/node.
+        This method is used only for input nodes.
+        Args:
+            node_index (int):
+
+        Returns (des_chiffres_node):
+
+        """
         return self.copy()
 
 
@@ -260,6 +363,12 @@ class des_chiffres_node:
             return inputs_to_nullify
 
     def nullify_this_node(self):
+        """
+        Method to turn this node into a null node
+
+        Returns:
+            None
+        """
         self.mutation_swap_method = None
         self.mutation_method = None
         self.result_calculation = None
@@ -273,6 +382,14 @@ class des_chiffres_node:
         self.node2 = None
 
     def is_node(self, node_number):
+        """
+        Method to check if this node is the node 'node_number'.
+        Args:
+            node_number (int): number of the node in the tree
+
+        Returns:
+            bool
+        """
         if self.type_node == 1:
             if 1 == node_number:
                 return True
@@ -288,7 +405,19 @@ class des_chiffres_node:
         else:
             print("error invalid condition achieved. Null node ask if is node")
 
-    def replace_branch(self, node_to_be_replace, sub_tree, indexex_to_remove):
+    def replace_branch(self, node_to_be_replace, sub_tree, indexes_to_remove):
+        """
+        Method to look for a given node to be replace.
+
+        Args:
+            node_to_be_replace (int):
+            sub_tree (des_chiffres_node):
+            indexes_to_remove (List(int)): List of indexes to remove. this value is recursively reduced every time a
+            node is found with an index inside this list.
+
+        Returns:
+            None
+        """
 
         if self.type_node==0 or self.type_node==1:
             return
@@ -296,20 +425,22 @@ class des_chiffres_node:
         elif self.node1.is_node(node_to_be_replace):
             self.node1 = sub_tree
             self.update_value()
-            _ = self.node2.nullify_inputs(indexex_to_remove)
+            _ = self.node2.nullify_inputs(indexes_to_remove)
             return
+
         elif self.node2.is_node(node_to_be_replace-(self.node1.get_value() + 1)):
             self.node2 = sub_tree
             self.update_value()
-            _ = self.node1.nullify_inputs(indexex_to_remove)
+            _ = self.node1.nullify_inputs(indexes_to_remove)
             return
 
         elif self.node1.get_value() >= node_to_be_replace:
-            self.node1.replace_branch(node_to_be_replace,sub_tree,indexex_to_remove)
-            _ = self.node2.nullify_inputs(indexex_to_remove)
+            self.node1.replace_branch(node_to_be_replace, sub_tree, indexes_to_remove)
+            _ = self.node2.nullify_inputs(indexes_to_remove)
+
         else:
-            self.node2.replace_branch(node_to_be_replace - (self.node1.get_value() + 1), sub_tree, indexex_to_remove)
-            _ = self.node1.nullify_inputs(indexex_to_remove)
+            self.node2.replace_branch(node_to_be_replace - (self.node1.get_value() + 1), sub_tree, indexes_to_remove)
+            _ = self.node1.nullify_inputs(indexes_to_remove)
         self.update_value()
 
     def fix_null_nodes(self):
@@ -327,6 +458,11 @@ class des_chiffres_node:
             self.value = self.node1.get_value()+self.node2.get_value()+1
 
     def report(self):
+        """
+        Method to get recursively the expression of this tree.
+        Returns:
+
+        """
         if self.type_node == 1:
             return str(self.input)
         elif self.type_node == 2:
@@ -335,11 +471,29 @@ class des_chiffres_node:
             return ""
 
     def update_value(self):
+        """
+        Update value of node
+        Returns:
+
+        """
         self.value = self.node2.get_value()+1+self.node1.get_value()
 
 
 class function_estimation_node(des_chiffres_node):
-    def __init__(self, input_index, input_value, type_node=1, n_inputs = 0, operation_node=None, Node1=None, Node2=None):
+    number_inputs: int
+
+    def __init__(self, input_index, input_value, type_node=1, n_inputs = 0, operation_given=None, Node1=None, Node2=None):
+        """
+        Node for the task of function estimation. Employs the same mechanics of des_chiffres_node.
+        Args:
+            input_index (int): index of input in the main list of inputs. Works as an identifier of inputs.
+            input_value (List(float)): input value
+            type_node (int): type of this node
+            n_inputs (int): number inputs in total
+            operation_given (operation):
+            Node1 (function_estimation_node):
+            Node2 (function_estimation_node):
+        """
         self.number_inputs = n_inputs
         self.type_node = type_node  # 0 for null node, 1 for input node, 2 for operation node
 
@@ -378,7 +532,7 @@ class function_estimation_node(des_chiffres_node):
 
             self.mutation_method = self.mutate_operation_node
             self.mutation_swap_method = self.mutate_swap_operation_node
-            self.operation = operation_node
+            self.operation = operation_given
             self.result_calculation = self.get_result_operation_node
             self.node1 = Node1
             self.node2 = Node2
@@ -387,17 +541,18 @@ class function_estimation_node(des_chiffres_node):
             self.update_value()
 
 
-        # self.mutation_method = self.mutate_operation_node
-        # self.mutation_swap_method = self.mutate_swap_operation_node
-        # self.operation = operation_node
-        # self.result_calculation = self.get_result_operation_node
-        # self.node1 = Node1
-        # self.node2 = Node2
-        # self.get_sub_tree = self.get_sub_tree_operation_node
-        # self.value = 0
-        # self.update_value()
-
     def mutate_input_node(self, node_index, input_index, input_value):
+        """
+        Method to mutate a node, into an operation node. This node can only be an input node.
+        Args:
+            node_index (int): index of node in the tree (not used in the part, because this is a end condition
+            in a recursive algorithm)
+            input_index (int):
+            input_value (float):
+
+        Returns: number of nodes added to the tree
+            int
+        """
         self.type_node = 2
         self.node1 = function_estimation_node(self.input_index, self.input, n_inputs=self.number_inputs)
         self.node2 = function_estimation_node(input_index, input_value, n_inputs=self.number_inputs)
@@ -413,6 +568,11 @@ class function_estimation_node(des_chiffres_node):
 
 
     def get_random_operation(self):
+        """
+        Method to get a random operation
+        Returns:
+            operation
+        """
         random_value = random.uniform(0, 1)
         if random_value<0.25:
             return sum_op_function_estimation()
@@ -424,6 +584,12 @@ class function_estimation_node(des_chiffres_node):
             return div_op_function_estimation()
 
     def copy(self):
+        """
+        Method to copy this node.
+
+        Returns:
+            function_estimation_node
+        """
         if self.type_node == 1:
             return function_estimation_node(self.input_index,self.input.copy(), n_inputs=self.number_inputs)
         elif self.type_node == 0:
@@ -431,11 +597,16 @@ class function_estimation_node(des_chiffres_node):
         else:
             node_son1 = self.node1.copy()
             node_son2 = self.node2.copy()
-            new_node = function_estimation_node(None, None, type_node=2, n_inputs=self.number_inputs, operation_node = self.operation.copy(),
-                                         Node1=node_son1,Node2=node_son2)
+            new_node = function_estimation_node(None, None, type_node=2, n_inputs=self.number_inputs, operation_given= self.operation.copy(),
+                                                Node1=node_son1, Node2=node_son2)
             return new_node
 
     def get_result_operation_node(self):
+        """
+        Method to calculate the result of this node. Used only for operation nodes.
+        Returns:
+            float
+        """
         if self.type_node==1:
             return self.input
         elif self.node1.type_node == 0:
@@ -446,6 +617,7 @@ class function_estimation_node(des_chiffres_node):
 
 
     def report(self):
+
         if self.type_node == 1:
             if self.is_constant():
                 return str(self.input[0])
@@ -457,6 +629,11 @@ class function_estimation_node(des_chiffres_node):
             return ""
 
     def is_constant(self):
+        """
+        Method to check if this input node, contains an input variable x or a constant.
+        Returns:
+            bool
+        """
         value = self.input[0]
         for i in self.input:
             if value != i:
@@ -465,17 +642,24 @@ class function_estimation_node(des_chiffres_node):
 
 
 class des_chiffres_root_node:
-
-
+    back_up_inputs: List[int]
+    remaining_indexes_inputs: List[int]
+    desired_output: float
+    __number_inputs: int
     __fitness: int
     remaining_inputs: List[int]
 
-    def __init__(self, inputs, desired_value, input_index=0,type_node = 1,**kwargs):
+    def __init__(self, inputs, desired_value, input_index=0, type_node = 1,**kwargs):
         """
+        Class that serves as an individual to perform mutation and cross-over. This class contains the tree that
+        defines a solution for a des chiffres et des lettres problem.
 
         Args:
+            inputs (List(int)):
+            desired_value (float):
             input_index (int):
-            inputs (List[ints]):
+            type_node (int):
+            **kwargs: key words parameters used to create new individuals.
         """
         if input_index is None:
             assert type_node==2, "Invalid combination of type node = {:d} and input index {}".format(type_node,
@@ -497,7 +681,7 @@ class des_chiffres_root_node:
 
     def copy(self):
         """
-
+        Method to copy a root node and its tree.
         Returns:
             des_chiffres_root_node:
         """
@@ -516,11 +700,17 @@ class des_chiffres_root_node:
         else:
            print("Error. Invalid type of node", self.type_node)
 
-    def mutation(self,random_node = -1):
+    def mutation(self):
+        """
+        Method to perform a mutation in this individual. The mutation affects the root node and therefore the tree
+        inside.
+        Returns:
+            None
+        """
         number_nodes = self.root_node.get_value()
         if len(self.remaining_inputs) > 0:
-            if random_node<0:
-                random_node = random.randint(1,number_nodes)
+
+            random_node = random.randint(1,number_nodes)
             random_index = random.randint(0,len(self.remaining_inputs)-1)
             result = self.root_node.mutate_remaining_inputs(random_node, self.remaining_indexes_inputs[random_index], self.remaining_inputs[random_index])
             # self.sum_value()
@@ -535,12 +725,10 @@ class des_chiffres_root_node:
             _ = self.root_node.mutation_swap_method([random_index1, random_index2],
                                                [self.back_up_inputs[random_index1],
                                                 self.back_up_inputs[random_index2]])
-            if _ != 2:
-                print("Error. Impossible condition achieved")
 
     def cross_over(self,tree_node):
         """
-
+        Cross-over operation done over this individual and a second parent.
         Args:
             tree_node (des_chiffres_root_node):
 
@@ -594,6 +782,12 @@ class des_chiffres_root_node:
 
 
     def fitness(self):
+        """
+        Method that calculate the fitness of this individual by evaluating the absolute error of the result and
+        the desired value.
+        Returns:
+
+        """
         result = self.root_node.get_result_operation_node()
         self.__fitness = -abs(result-self.desired_output)
 
@@ -604,6 +798,12 @@ class des_chiffres_root_node:
         return self.__fitness
 
     def report(self):
+        """
+        Method to get an expression of the solution.
+        Returns:
+            str
+
+        """
         return self.root_node.report()
 
 
@@ -612,15 +812,21 @@ class des_chiffres_root_node:
 class function_estimation_root_node:
 
 
+    back_up_inputs: List[List[int]]
     __fitness: float
     remaining_inputs: List[List[int]]
 
     def __init__(self, inputs, desired_value, input_index=0, type_node=1, **kwargs):
         """
+        Class that serves as an individual to perform mutation and cross-over. This class contains the tree that
+        defines a solution for a des chiffres et des lettres problem.
 
         Args:
-            input_index (int):
-            inputs (List[ints]):
+            inputs (List(List(int))): List of all inputs.
+            desired_value (List(float)): list of expected outputs.
+            input_index (int): index of the input asigned to the root node (valid only of root node is an input node)
+            type_node (int): type of node
+            **kwargs: key words parameters used to create new individuals.
         """
         data_numbers = len(inputs[0])
         if input_index is None:
@@ -644,7 +850,7 @@ class function_estimation_root_node:
 
     def copy(self):
         """
-
+        Method to give a copy of this individual
         Returns:
             function_estimation_root_node:
         """
@@ -663,11 +869,16 @@ class function_estimation_root_node:
         else:
            print("Error. Invalid type of node :", self.type_node)  ## Delete this one and the one on des_chiffres
 
-    def mutation(self,random_node = -1):
+    def mutation(self):
+        """
+        Method to perform a mutation in this individual. The mutation affects the root node and therefore the tree
+        inside.
+        Returns:
+            None
+        """
         number_nodes = self.root_node.get_value()
         if len(self.remaining_inputs) > 0:
-            if random_node<0:
-                random_node = random.randint(1,number_nodes)
+            random_node = random.randint(1,number_nodes)
             random_index = random.randint(0,len(self.remaining_inputs)-1)
             result = self.root_node.mutate_remaining_inputs(random_node, self.remaining_indexes_inputs[random_index], self.remaining_inputs[random_index].copy())
             # self.sum_value()
@@ -686,11 +897,12 @@ class function_estimation_root_node:
 
     def cross_over(self,tree_node):
         """
-
+        Cross-over operation done over this individual and a second parent.
         Args:
-            tree_node (des_chiffres_root_node):
+            tree_node (function_estimation_root_node):
+
         Returns:
-            (des_chiffres_root_node):
+            (function_estimation_root_node):
         """
         random_node_to_be_replace = random.randint(1,self.root_node.get_value())
         random_node_for_replacement = random.randint(1,tree_node.root_node.get_value())
@@ -700,17 +912,11 @@ class function_estimation_root_node:
         sub_tree_base = self.root_node.get_sub_tree(random_node_to_be_replace)
         indexes_inputs_sub_base = sub_tree_base.get_indexes_in_tree([])
 
-
-
         if tree_offpsring.root_node.is_node(random_node_to_be_replace):
             tree_offpsring.root_node = sub_tree_donor
 
-
-
         else:
             tree_offpsring.root_node.replace_branch(random_node_to_be_replace, sub_tree_donor,indexes_inputs_donor)
-
-
 
         remaining_indexes_input = tree_offpsring.remaining_indexes_inputs
         remaining_inputs = tree_offpsring.remaining_inputs
@@ -735,6 +941,12 @@ class function_estimation_root_node:
 
 
     def fitness(self):
+        """
+        Method that calculate the fitness of this individual by evaluating the absolute error of the result and
+        the desired value.
+        Returns:
+            None
+        """
         results = self.root_node.get_result_operation_node()
         if len(results)==0:
             print("result: ",results)
@@ -748,11 +960,19 @@ class function_estimation_root_node:
         return self.__fitness
 
     def report(self):
+        """
+        Method to get an expression of the operation
+        Returns:
+
+        """
         return self.root_node.report()
 
 
 class operation:
     def __init__(self):
+        """
+        Base class for calculating and operation
+        """
         pass
 
     def get_null_value(self):

@@ -31,9 +31,10 @@ class Genetic_programming:
 
     def run(self):
         """
-        Method to iterate make a population run through an evolution process until a certain condition is meet.
-
-
+        Method to iterate make a population run through an evolution process until a certain condition is meet. If
+        end_by_time is True, then the program ends when a certain number of iterations has been done. If not, then
+        a condition is used to iterate, that returns True until such condition is meet, for example error 0, or until
+        all iterations are done.
         :return (None):
         """
         best_scores = []
@@ -66,9 +67,9 @@ class Genetic_programming:
 
 def end_with_error_zero(population):
     """
-
+    Condition to end a run process when error 0 is achieved.
     Args:
-        population (pl.population_des_chiffres):
+        population (pl.population_base):
     """
     best_fitness = population.best_individual.get_fitness()
     return not best_fitness == 0
