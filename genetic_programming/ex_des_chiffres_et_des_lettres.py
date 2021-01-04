@@ -51,7 +51,7 @@ if __name__ == "__main__":
 # args = Namespace(population=50,  # 5, 15 50
 #                  inputs = [1,2,3,4,5,6,7,8],
 #                  output = 23,
-#                  mutation=0.4,  # 0.01, 0.1, 0.4
+#                  mutation=0.3,  # 0.01, 0.1, 0.4
 #                  epochs=50,
 #                  end_condition=0)
 #
