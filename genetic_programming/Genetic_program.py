@@ -13,6 +13,7 @@ class Genetic_programming:
     def __init__(self, Population, condition=None, iterations=100, iter_method=False):
 
         """
+        Class to implement genetic programming
 
         :type Population: Populations.Population_base
         :param Population: [Population]
@@ -30,8 +31,10 @@ class Genetic_programming:
 
     def run(self):
         """
+        Method to iterate make a population run through an evolution process until a certain condition is meet.
 
-        :return:
+
+        :return (None):
         """
         best_scores = []
         average_scores = []
