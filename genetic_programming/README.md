@@ -36,7 +36,7 @@ python ex_function_estimation.py --population 50 --inputs 1 2 3 4 5 6 7 8 --outp
 *   Implementation of genetic programming for calculating expressions, for the problem known as  des chiffres et des lettres and function approximation. 
 The first one consist of a estimation of a expression of the form:
 
-12-5*4+7+2*9 = 17
+12-5 x 4+7+2x9 = 17
 
 Where  the inputs are [12,5,4,7,2,9] and the output is 17. The input can take any length greater than 1
 and the output must be a real number. The operation avalaible are sum, rest multiplication and division. 
