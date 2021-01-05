@@ -465,12 +465,6 @@ class des_chiffres_node:
         """
         if self.type_node == 1:
             return str(self.input)
-        elif self.type_node == 2:
-            return "({:s} {:s} {:s}) ".format(self.node1.report(),self.operation.report(),self.node2.report())
-        else:
-            return ""
-        if self.type_node == 1:
-            return str(self.input)
 
         elif self.type_node == 2:
             report1 = self.node1.report()
@@ -791,6 +785,22 @@ class des_chiffres_root_node:
         Returns:
             (des_chiffres_root_node):
         """
+        if tree_node.root_node.get_value()>5*len(self.back_up_inputs):  # Safeguard against excessively large nodes.
+            #  its like saying you are not good enough if you are too big.
+            random_index = random.randint(0, len(self.back_up_inputs) - 1)
+            new_node = des_chiffres_root_node(self.back_up_inputs.copy(), self.desired_output,
+                                              input_index=random_index)
+            if self.root_node.get_value()>tree_node.root_node.get_value():
+
+                return tree_node.cross_over(new_node)
+            # elif self.root_node.get_value()>5*len(self.back_up_inputs):  # still too big need to be reduced by a smaller
+            #     # tree
+            #     return self.cross_over(new_node)
+            # this condition, though logical, its unnecessary since the outcome is the same for this elif and this else
+            else: # the current tree is not too big, so cross-over is done as usual.
+                return self.cross_over(new_node)
+
+
         random_node_to_be_replace = random.randint(1,self.root_node.get_value())
         random_node_for_replacement = random.randint(1,tree_node.root_node.get_value())
         tree_offpsring = self.copy()
@@ -846,6 +856,8 @@ class des_chiffres_root_node:
         """
         result = self.root_node.calculate_result()
         self.__fitness = -abs(result-self.desired_output)
+        if self.__fitness < -abs(self.desired_output):
+            self.__fitness = -abs(self.desired_output)
 
     def set_fitness(self, fitness):
         self.__fitness = fitness
@@ -960,19 +972,20 @@ class function_estimation_root_node:
         Returns:
             (function_estimation_root_node):
         """
-        if tree_node.root_node.get_value()>30:  # Safeguard against excesively large nodes.
-            if tree_node.root_node.get_value()>abs(self.desired_output):
-                #  its like saying you are not good enough if you are too big.
-                random_index = random.randint(0,len(self.back_up_inputs)-1)
-                new_node = des_chiffres_root_node(self.back_up_inputs.copy(),self.desired_output,
-                                                         input_index=random_index)
-                self.cross_over(new_node)
-        if tree_node.root_node.get_value()>100:  # Safeguard against excesively large nodes.
+        if tree_node.root_node.get_value() > 100:  # Safeguard against excessively large nodes.
             #  its like saying you are not good enough if you are too big.
-            random_index = random.randint(0,len(self.back_up_inputs)-1)
-            new_node = function_estimation_root_node(self.back_up_inputs.copy(),self.desired_output.copy(),
+            random_index = random.randint(0, len(self.back_up_inputs) - 1)
+            new_node = function_estimation_root_node(self.back_up_inputs.copy(), self.desired_output.copy(),
                                                      input_index=random_index)
-            self.cross_over(new_node)
+            if self.root_node.get_value() > tree_node.root_node.get_value():
+                return tree_node.cross_over(new_node)
+            # elif self.root_node.get_value()>100:  # still too big need to be reduced by a smaller
+            #     # tree
+            #     return self.cross_over(new_node)
+            # this condition, though logical, its unnecessary since the outcome is the same for this elif and this else
+            else:  # the current tree is not too big, so cross-over is done as usual.
+                return self.cross_over(new_node)
+
         random_node_to_be_replace = random.randint(1,self.root_node.get_value())
         random_node_for_replacement = random.randint(1,tree_node.root_node.get_value())
         tree_offpsring = self.copy()
@@ -1016,14 +1029,18 @@ class function_estimation_root_node:
         Returns:
             None
         """
-        results = self.root_node.calculate_result()
+        result_tree = self.root_node.calculate_result()
+        results_per_output = []
         # results = self.root_node.get_result_operation_node()
         for i in range(len(self.desired_output)):
             if self.desired_output[i]!= 0:
-                results[i] = -(abs((results[i]-self.desired_output[i])/self.desired_output[i]))
+                results_per_output += [-(abs((result_tree[i]-self.desired_output[i])/self.desired_output[i]))]
             else:
-                results[i] = -(abs((results[i]-self.desired_output[i])))
-        self.__fitness = sum(results)
+                results_per_output += [-(abs((result_tree[i]-self.desired_output[i])))]
+        self.__fitness = sum(results_per_output)
+        if self.__fitness < -100:
+            self.__fitness = -100
+
 
     def set_fitness(self, fitness):
         self.__fitness = fitness
