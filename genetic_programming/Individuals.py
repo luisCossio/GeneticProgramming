@@ -4,12 +4,12 @@ from typing import List, Any
 
 class des_chiffres_node:
 
-    operation: operation
+    # operation: operation
     type_node: int
-    node1: des_chiffres_node
-    node2: des_chiffres_node
+    # node1: des_chiffres_node
+    # node2: des_chiffres_node
 
-    def __init__(self, input_index, input_value, type_node = 1, operation_given = None, Node1 = None, Node2 = None):
+    def __init__(self, input_index, input_value, type_node = 1, operation_node = None, Node1 = None, Node2 = None):
         """
         Class that defines a node in a tree, that defines a solution for a problem of des chiffres et des lettres.
         Each node can be either input node, operation node or null node. Input nodes contains an input value.
@@ -21,7 +21,7 @@ class des_chiffres_node:
             input_index (int): index of the input in the list of all inputs. Used as an index to distinguished inputs
             input_value (float): input value
             type_node (int): type of node
-            operation_given (operation): operation object
+            operation_node (operation): operation object
             Node1 (des_chiffres_node): node son 1
             Node2 (des_chiffres_node): node son 2
         """
@@ -59,7 +59,7 @@ class des_chiffres_node:
 
             self.mutation_method = self.mutate_operation_node
             self.mutation_swap_method = self.mutate_swap_operation_node
-            self.operation = operation_given
+            self.operation = operation_node
             self.result_calculation = self.get_result_operation_node
             self.node1 = Node1
             self.node2 = Node2
@@ -173,7 +173,7 @@ class des_chiffres_node:
         else:
             node_son1 = self.node1.copy()
             node_son2 = self.node2.copy()
-            new_node = des_chiffres_node(self.input_index, self.input, type_node=2, operation_given= self.operation.copy(),
+            new_node = des_chiffres_node(self.input_index, self.input, type_node=2, operation_node= self.operation.copy(),
                                          Node1=node_son1, Node2=node_son2)
             return new_node
 
@@ -215,6 +215,7 @@ class des_chiffres_node:
         Returns:
             float
         """
+
         return self.input
 
     # def mutate_by_swapping_inputs(self, index_to_find, indexes_swap, indexes_swap):
@@ -286,7 +287,6 @@ class des_chiffres_node:
         #     print("detected")
         if self.node1.get_value() >= node_index:
             tree = self.node1.get_sub_tree(node_index)
-            # if result > 0:
             return tree
 
         elif self.node1.get_value() + 1 == node_index:
@@ -469,6 +469,31 @@ class des_chiffres_node:
             return "({:s} {:s} {:s}) ".format(self.node1.report(),self.operation.report(),self.node2.report())
         else:
             return ""
+        if self.type_node == 1:
+            return str(self.input)
+
+        elif self.type_node == 2:
+            report1 = self.node1.report()
+            report2 = self.node2.report()
+            if report1 == "":
+                if report2 == "":
+                    return ""
+                else:
+                    operation_result = self.operation.report()
+                    if operation_result == '-':
+                        return "({:s}{:s}) ".format(operation_result,
+                                                          self.node2.report())
+                    elif operation_result == '/':
+                        return "({:d} {:s} {:s}) ".format(self.operation.get_null_value(), operation_result,
+                                                          self.node2.report())
+                    return report2
+            else:
+                if report2 == "":
+                    return report1
+                else:
+                    return "({:s} {:s} {:s}) ".format(self.node1.report(),self.operation.report(),self.node2.report())
+        else:
+            return ""
 
     def update_value(self):
         """
@@ -482,7 +507,7 @@ class des_chiffres_node:
 class function_estimation_node(des_chiffres_node):
     number_inputs: int
 
-    def __init__(self, input_index, input_value, type_node=1, n_inputs = 0, operation_given=None, Node1=None, Node2=None):
+    def __init__(self, input_index, input_value, type_node=1, n_inputs = 0, operation_node=None, Node1=None, Node2=None):
         """
         Node for the task of function estimation. Employs the same mechanics of des_chiffres_node.
         Args:
@@ -490,7 +515,7 @@ class function_estimation_node(des_chiffres_node):
             input_value (List(float)): input value
             type_node (int): type of this node
             n_inputs (int): number inputs in total
-            operation_given (operation):
+            operation_node (operation):
             Node1 (function_estimation_node):
             Node2 (function_estimation_node):
         """
@@ -532,7 +557,7 @@ class function_estimation_node(des_chiffres_node):
 
             self.mutation_method = self.mutate_operation_node
             self.mutation_swap_method = self.mutate_swap_operation_node
-            self.operation = operation_given
+            self.operation = operation_node
             self.result_calculation = self.get_result_operation_node
             self.node1 = Node1
             self.node2 = Node2
@@ -597,7 +622,7 @@ class function_estimation_node(des_chiffres_node):
         else:
             node_son1 = self.node1.copy()
             node_son2 = self.node2.copy()
-            new_node = function_estimation_node(None, None, type_node=2, n_inputs=self.number_inputs, operation_given= self.operation.copy(),
+            new_node = function_estimation_node(None, None, type_node=2, n_inputs=self.number_inputs, operation_node= self.operation.copy(),
                                                 Node1=node_son1, Node2=node_son2)
             return new_node
 
@@ -608,6 +633,7 @@ class function_estimation_node(des_chiffres_node):
             float
         """
         if self.type_node==1:
+            print("Error invalid condition meet. type node == 1 in operation node. ")
             return self.input
         elif self.node1.type_node == 0:
             return self.operation([self.operation.get_null_value()]*self.number_inputs,self.node2.calculate_result())
@@ -623,8 +649,27 @@ class function_estimation_node(des_chiffres_node):
                 return str(self.input[0])
             else:
                 return 'x'
+
         elif self.type_node == 2:
-            return "({:s} {:s} {:s}) ".format(self.node1.report(),self.operation.report(),self.node2.report())
+            report1 = self.node1.report()
+            report2 = self.node2.report()
+            if report1 == "" or report1 == "() ":
+                if report2 == "" or report2 == "() ":
+                    return "() "
+                else:
+                    operation_result = self.operation.report()
+                    if operation_result == '-':
+                        return "({:s}{:s}) ".format(operation_result,
+                                                          self.node2.report())
+                    elif operation_result == '/':
+                        return "({:d} {:s} {:s}) ".format(self.operation.get_null_value(), operation_result,
+                                                          self.node2.report())
+                    return report2
+            else:
+                if report2 == "" or report2 == "() ":
+                    return report1
+                else:
+                    return "({:s} {:s} {:s}) ".format(self.node1.report(),self.operation.report(),self.node2.report())
         else:
             return ""
 
@@ -639,6 +684,17 @@ class function_estimation_node(des_chiffres_node):
             if value != i:
                 return False
         return True
+
+    def get_result_input_node(self):
+        """
+        Method to calculate the result of this node. Used only for input nodes.
+        Returns:
+            float
+        """
+        if self.input_index<13:
+            if not self.is_constant():
+                print("error invalid condition meet. Constant input node is not constant")
+        return self.input
 
 
 class des_chiffres_root_node:
@@ -788,7 +844,7 @@ class des_chiffres_root_node:
         Returns:
 
         """
-        result = self.root_node.get_result_operation_node()
+        result = self.root_node.calculate_result()
         self.__fitness = -abs(result-self.desired_output)
 
     def set_fitness(self, fitness):
@@ -904,6 +960,19 @@ class function_estimation_root_node:
         Returns:
             (function_estimation_root_node):
         """
+        if tree_node.root_node.get_value()>30:  # Safeguard against excesively large nodes.
+            if tree_node.root_node.get_value()>abs(self.desired_output):
+                #  its like saying you are not good enough if you are too big.
+                random_index = random.randint(0,len(self.back_up_inputs)-1)
+                new_node = des_chiffres_root_node(self.back_up_inputs.copy(),self.desired_output,
+                                                         input_index=random_index)
+                self.cross_over(new_node)
+        if tree_node.root_node.get_value()>100:  # Safeguard against excesively large nodes.
+            #  its like saying you are not good enough if you are too big.
+            random_index = random.randint(0,len(self.back_up_inputs)-1)
+            new_node = function_estimation_root_node(self.back_up_inputs.copy(),self.desired_output.copy(),
+                                                     input_index=random_index)
+            self.cross_over(new_node)
         random_node_to_be_replace = random.randint(1,self.root_node.get_value())
         random_node_for_replacement = random.randint(1,tree_node.root_node.get_value())
         tree_offpsring = self.copy()
@@ -947,10 +1016,13 @@ class function_estimation_root_node:
         Returns:
             None
         """
-        results = self.root_node.get_result_operation_node()
-        if len(results)==0:
-            print("result: ",results)
-        results = [-(abs((results[i]-self.desired_output[i])/self.desired_output[i])) for i in range(len(self.desired_output))]
+        results = self.root_node.calculate_result()
+        # results = self.root_node.get_result_operation_node()
+        for i in range(len(self.desired_output)):
+            if self.desired_output[i]!= 0:
+                results[i] = -(abs((results[i]-self.desired_output[i])/self.desired_output[i]))
+            else:
+                results[i] = -(abs((results[i]-self.desired_output[i])))
         self.__fitness = sum(results)
 
     def set_fitness(self, fitness):
@@ -1058,7 +1130,7 @@ class div_op_function_estimation(div_op):
         division = []
         for i in range(len(args[0])):
             if args[1][i]==0:
-                division += [args[0][i]*10000]
+                division += [args[0][i]*1000000]
             else:
                 division += [args[0][i]/args[1][i]]
         return division
